@@ -3,10 +3,72 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>Document</title>
 </head>
 <body>
 
+  <ul class="artist-list">
+  </ul>
+  <button id="btnMoreArtists" class="but" >더 보기</button>
+
+  <div id="template">
+  <li id="artist-item-template" class="artists-item">
+    <span class="artist-name"></span>
+    <img class="artist-img-profile" src="" alt="">
+  </li>
+  </div>
+
+
+  <script src="js/axios.js"></script>
+  <script src="js/jquery-3.3.1.min.js"></script>
+  <script>
+
+  var pageNum = 1;
+  getArtists(pageNum);
+
+  // 더 보기 버튼을 눌럿을 때 동작
+  $('#btnMoreArtists').click(function(){
+    clickMoreArtistsButton();
+  })
+  function clickMoreArtistsButton() {
+    pageNum += 1;
+    getArtists(pageNum);
+  }
+
+  function getArtists(pageNum){
+      axios({
+        url : 'http://localhost:8000/api/artist/',
+        method: 'get',
+        params: {
+          page: pageNum,
+        }
+      }).then(function (response){
+      // ul.artist-list
+      var artistListEelement = $('.artist-list');
+      // 응답 Aritst 정보 목록
+      var artists = response.data.results;
+      console.log(artists)
+      // Artist 정보 목록을 순회
+      for (var i=0; i < artists.length; i++) {
+        // 현재 artist정보
+        var curArtists = artists[i];
+        // 현재 artist정보를 담을 li.artsits-item 요소를 복사
+        var curArtistItemElement = $('#artist-item-template').clone();
+        // 복사한 아이템에서 .artsit-name에 해당하는 속성을 text를 curArtist의 name으로 설정
+        curArtistItemElement.find('.artist-name').text(curArtists.name);
+        curArtistItemElement.find('.artist-img-profile').attr('src',curArtists.img_profile);
+        artistListEelement.append(curArtistItemElement);
+      }
+      if(response.data.next == null ) {
+        document.getElementById('btnMoreArtists').style.display="none";
+
+      }
+
+    })
+    .catch(function (error){
+      console.log(error);
+    })
+  };
+  </script>
 </body>
 </html>
