@@ -1,6 +1,7 @@
 html, body {
   font-size: 13px;
 }
+
 #template {
   display: none;
 }
@@ -10,19 +11,19 @@ html, body {
   padding: 0;
   margin: 0;
 }
+
 .artist-list > .artist-item {
   float: left;
   width: 20%;
   box-sizing: border-box;
   border-bottom: 1px solid #ccc;
   padding: 10px;
-  > .artist-name {
-
-  }
-  > .artist-img-profile {
-    width: 150px;
-  }
 }
+
+.artist-list > .artist-item > .artist-img-profile {
+  width: 150px;
+}
+
 .btn {
   width: 180px;
   padding: 10px;

@@ -3,72 +3,87 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>Document</title>
 </head>
+
 <body>
+  <h1>Melon Front!</h1>
+  <a href="artist-list.html">Artist List</a>
 
-  <ul class="artist-list">
-  </ul>
-  <button id="btnMoreArtists" class="but" >더 보기</button>
+  <form action="">
+    <input type="text" id="username" placeholder="username">
+    <input type="password" id="password" placeholder="password">
+    <button type="submit" onclick="sendAjax(event)">LOGIN</button>
+  </form>
 
-  <div id="template">
-  <li id="artist-item-template" class="artists-item">
-    <span class="artist-name"></span>
-    <img class="artist-img-profile" src="" alt="">
-  </li>
-  </div>
+  <button id="auth-token">get token</button>
+    <script src="js/axios.js"></script>
+    <script src="js/jquery-3.3.1.min.js"></script>
+    <script>
 
+    //1. AuthToken 을 받아오는 js함수 구현
+    // function getAuthToken  (username,password){}}
+    // 돌아온 token값을 console.log 출력
+    // function getAuthToken (username,password){
+    //   axios.post('http://localhost:8000/api/members/auth-token/',{
+    //       'username':username,
+    //       'password':password,
+    //     })
+    //     .then(function (response){
+    //     var token = response;
+    //     console.log(token);
+    //   })
+    // };
 
-  <script src="js/axios.js"></script>
-  <script src="js/jquery-3.3.1.min.js"></script>
-  <script>
-
-  var pageNum = 1;
-  getArtists(pageNum);
-
-  // 더 보기 버튼을 눌럿을 때 동작
-  $('#btnMoreArtists').click(function(){
-    clickMoreArtistsButton();
-  })
-  function clickMoreArtistsButton() {
-    pageNum += 1;
-    getArtists(pageNum);
-  }
-
-  function getArtists(pageNum){
-      axios({
-        url : 'http://localhost:8000/api/artist/',
-        method: 'get',
-        params: {
-          page: pageNum,
-        }
-      }).then(function (response){
-      // ul.artist-list
-      var artistListEelement = $('.artist-list');
-      // 응답 Aritst 정보 목록
-      var artists = response.data.results;
-      console.log(artists)
-      // Artist 정보 목록을 순회
-      for (var i=0; i < artists.length; i++) {
-        // 현재 artist정보
-        var curArtists = artists[i];
-        // 현재 artist정보를 담을 li.artsits-item 요소를 복사
-        var curArtistItemElement = $('#artist-item-template').clone();
-        // 복사한 아이템에서 .artsit-name에 해당하는 속성을 text를 curArtist의 name으로 설정
-        curArtistItemElement.find('.artist-name').text(curArtists.name);
-        curArtistItemElement.find('.artist-img-profile').attr('src',curArtists.img_profile);
-        artistListEelement.append(curArtistItemElement);
-      }
-      if(response.data.next == null ) {
-        document.getElementById('btnMoreArtists').style.display="none";
-
+      function getAuthToken (username, password){
+        $.ajax({
+          type:"POST",
+          url :"http://localhost:8000/api/members/auth-token/",
+          data : {
+            "username":username,
+            "password":password,
+          },
+          dataType:"json",
+          success: function(response){
+            setCookie("token",response.token,7)
+          }
+        });
       }
 
-    })
-    .catch(function (error){
-      console.log(error);
-    })
-  };
-  </script>
+      // preventDefault는 원래 form의 기능을 막는다.
+      function sendAjax(e){
+        e.preventDefault();
+        var username = $('#username').val();
+        var password = $('#password').val();
+        getAuthToken(username,password);
+      }
+
+      // get token 버튼 누르면 getAuthToken 함수 실행
+      // $(css selector) -> 다른것으로 감싸져서 온다.
+      // on - 이벤트 핸들러
+      $('#auth-token').on("click",function(){getAuthToken('kahee','rkgml12345')})
+
+    // 2. form#login을 구현
+    // username, password를 받는 input2개와 submit역할을 하는 button
+    // 해당 form에 'sumbit'이 실행되었을 때, form자체의 'submit'기능 대신
+    // jquery를 사용해서 아래 getAuthToken()함수를 실행
+
+    // 3.위 링크를 참조해서 받아온 token 값을 'token'쿠키 key에 7일후 만료되도록 저장
+      function setCookie(key, value, expires) {
+        // Wed Mar 21 2018 12:28:43 GMT+0900 (KST) 이런식으로 날짜가 나옴
+        var d = new Date()
+        //getDate() 1970년부터 밀리세컨드로 더해진 row 숫자가 나옴
+        d.setTime(d.getTime()+ expires*24*60*60*1000)
+        var exdate = d.toUTCString();
+        // 문자열로 다 합쳐짐
+        document.cookie = key + "=" + value + ";" + "expires =" + exdate + ";"
+      }
+
+
+
+    </script>
+
+
 </body>
 </html>
