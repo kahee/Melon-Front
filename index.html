@@ -5,81 +5,97 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>Document</title>
+  <link rel="stylesheet" href="css/index.css">
+  <link rel="stylesheet" href="css/base.css">
 </head>
 
 <body>
   <h1>Melon Front!</h1>
+  <p id="user-login" class ="none"></p>
   <a href="artist-list.html">Artist List</a>
-
-  <form action="">
+  <form action="" method ="post" id="login">
     <input type="text" id="username" placeholder="username">
     <input type="password" id="password" placeholder="password">
-    <button type="submit" onclick="sendAjax(event)">LOGIN</button>
+    <button type="submit" >LOGIN</button>
   </form>
 
-  <button id="auth-token">get token</button>
-    <script src="js/axios.js"></script>
-    <script src="js/jquery-3.3.1.min.js"></script>
-    <script>
+  <script src="js/axios.js"></script>
+  <script src="js/jquery-3.3.1.min.js"></script>
+  <script src="js/cookie.js"></script>
 
-    //1. AuthToken 을 받아오는 js함수 구현
-    // function getAuthToken  (username,password){}}
-    // 돌아온 token값을 console.log 출력
-    // function getAuthToken (username,password){
-    //   axios.post('http://localhost:8000/api/members/auth-token/',{
-    //       'username':username,
-    //       'password':password,
-    //     })
-    //     .then(function (response){
-    //     var token = response;
-    //     console.log(token);
-    //   })
-    // };
+  <script>
+  // function intiUserInfo(){}
+  // 1. 클라이언트에 'token'이라는 Cookie가 있는지 확인
+  // 2. 만약 있다면 해당 값을 가져온 후
+  // 3. getUserInfo()를 실행 -> UserDetail에 get 요청, pk 없음
+  // URL : /api/members/info/
+  // HTTP Header 'Authorization'에 Token<value> 담아서 요청
+  // request.user 를 기준으로 serialize한 User정보를 리턴
+  // 4. 유저 정보를 가져온 후, getAuthToken의 .then()아래 유저정보 표시 로직을 실행
+  function initUserInfo(){
+    var token = getCookie('token')
+    if ( token != ''){
+      axios({
+        url: 'http://localhost:8000/api/members/info/',
+        method: 'get',
+        headers: {
+          Authorization : 'Token '+ token
+        }
+      }).then(function (response){
+          setUserInfo(response.data);
+      }).catch(function (error){
+          console.log(error);
+          console.log(error.response);
+      });
+    }
+  }
+  initUserInfo();
 
-      function getAuthToken (username, password){
-        $.ajax({
-          type:"POST",
-          url :"http://localhost:8000/api/members/auth-token/",
-          data : {
-            "username":username,
-            "password":password,
-          },
-          dataType:"json",
-          success: function(response){
-            setCookie("token",response.token,7)
-          }
-        });
-      }
+  function setUserInfo(user){
+    $('#user-login').text(user.username+ '(으)로 로그인 중');
+    $('#user-login').removeClass('none');
+    $('#login').addClass('none');
+  }
 
-      // preventDefault는 원래 form의 기능을 막는다.
-      function sendAjax(e){
-        e.preventDefault();
-        var username = $('#username').val();
-        var password = $('#password').val();
-        getAuthToken(username,password);
-      }
+  </script>
+  <script>
 
-      // get token 버튼 누르면 getAuthToken 함수 실행
-      // $(css selector) -> 다른것으로 감싸져서 온다.
-      // on - 이벤트 핸들러
-      $('#auth-token').on("click",function(){getAuthToken('kahee','rkgml12345')})
+  //1. AuthToken 을 받아오는 js함수 구현
+  // function getAuthToken  (username,password){
+  // 돌아온 token값을 console.log 출력
+  function getAuthToken (username,password){
+    axios.post('http://localhost:8000/api/members/auth-token/',{
+        'username':username,
+        'password':password,
+      })
+      .then(function (response){
+        var token = response.data.token;
+        var user = response.data.user;
+        // 3.위 링크를 참조해서 받아온 token 값을 'token'쿠키 key에 7일후 만료되도록 저장
+        setCookie('token',token,7);
+        setUserInfo(user);
+    }).catch(function (error){
+        console.log(error);
+        console.log(error.response);
+    });
+  }
+  // 2. form#login을 구현
+  // username, password를 받는 input2개와 submit역할을 하는 button
+  // 해당 form에 'sumbit'이 실행되었을 때, form자체의 'submit'기능 대신
+  // jquery를 사용해서 아래 getAuthToken()함수를 실행
 
-    // 2. form#login을 구현
-    // username, password를 받는 input2개와 submit역할을 하는 button
-    // 해당 form에 'sumbit'이 실행되었을 때, form자체의 'submit'기능 대신
-    // jquery를 사용해서 아래 getAuthToken()함수를 실행
+  $('form#login').submit(function(event){
+    var username = $('#username').val();
+    var password = $('#password').val();
+    getAuthToken(username,password);
 
-    // 3.위 링크를 참조해서 받아온 token 값을 'token'쿠키 key에 7일후 만료되도록 저장
-      function setCookie(key, value, expires) {
-        // Wed Mar 21 2018 12:28:43 GMT+0900 (KST) 이런식으로 날짜가 나옴
-        var d = new Date()
-        //getDate() 1970년부터 밀리세컨드로 더해진 row 숫자가 나옴
-        d.setTime(d.getTime()+ expires*24*60*60*1000)
-        var exdate = d.toUTCString();
-        // 문자열로 다 합쳐짐
-        document.cookie = key + "=" + value + ";" + "expires =" + exdate + ";"
-      }
-    </script>
+    $('#username').val('');
+    $('#password').val('');
+    event.preventDefault();
+  });
+
+
+  </script>
 
 
 </body>
